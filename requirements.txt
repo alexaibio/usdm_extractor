@@ -1,0 +1,12 @@
+requests
+pydantic
+pydantic-settings
+python-dotenv
+
+tqdm
+pandas
+
+injector
+
+pymupdf
+BeautifulSoup4

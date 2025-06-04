@@ -1,0 +1,23 @@
+services:
+
+  udsm_extractor_app:
+    container_name: udsm_extractor_cont_name
+    build: .
+    volumes:
+      - ./data/input_dir:/home/data/input
+      - ./data/output_dir:/home/data/output
+    depends_on:
+      grobid_service:
+        condition: service_healthy
+
+  grobid_service:
+    container_name: "grobid_service"
+    image: grobid/grobid:0.6.2        # use the latest one 0.8.2 if you have AMD instruction set
+    platform: linux/amd64
+    ports:
+      - "8070:8070"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8070/api/isalive" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5

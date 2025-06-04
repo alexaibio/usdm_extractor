@@ -1,0 +1,27 @@
+study:
+  id: null
+  name: "Study Name Alex"
+  description: null
+  label: null
+  versions:
+    - id: "StudyVersion_1"
+      versionIdentifier: "1"
+      rationale: ""
+      documentVersionIds: []
+      dateValues: []
+      amendments: []
+      businessTherapeuticAreas: []
+      studyIdentifiers: []
+      referenceIdentifiers: []
+      studyDesigns:
+        - id: "InterventionalStudyDesign_1"
+          name: "Study Design Name 1"
+          label: "USDM Example Study Design"
+          description: "The main design for the study"
+          studyType: {}
+          studyPhase: {}
+          therapeuticAreas: []
+          characteristics: []
+          encounters: []
+          activities: []
+
