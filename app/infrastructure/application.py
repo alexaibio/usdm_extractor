@@ -3,13 +3,13 @@ import os
 from pathlib import Path
 from injector import inject
 from app.core.settings import Settings
-from app.use_cases.extractor_use_case import ExtractorUseCase
+from app.use_cases.processing_pdf_use_case import ProcessingPdfUseCase
 
 
 class Application:
     @inject
     def __init__(self,
-                 extractor_use_case: ExtractorUseCase,
+                 extractor_use_case: ProcessingPdfUseCase,
                  settings: Settings,
                  logger: logging.Logger):
         self._extractor_use_case = extractor_use_case
@@ -26,12 +26,12 @@ class Application:
         if not pdf_files:
             self._logger.warning(f"No PDF files found in {self._input_dir}")
             return
+        self._logger.info(f"Scanning {self._input_dir} folder... {len(pdf_files)} files found.")
 
         for pdf_file in pdf_files:
-            self._logger.info(f"Extracting: {pdf_file.name} → {self._output_dir}")
             self._extractor_use_case.run_extraction(
-                input_path=self._input_dir,
-                output_path=self._output_dir
+                pdf_file=pdf_file,
+                output_dir=self._output_dir
             )
 
 

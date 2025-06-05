@@ -1,8 +1,8 @@
 import logging
 from injector import singleton, Module
 from app.core.settings import get_settings, Settings
-from app.services.pdf_extractor import GrobidClient
-from app.services.pdf_extractor import PDFConvertor
+from app.services.pdf_convertor import GrobidClient
+from app.services.pdf_convertor import PDFConvertor
 from app.services.pdf_convertor_v3 import PDFConvertorV3
 
 
