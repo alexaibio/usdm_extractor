@@ -26,9 +26,6 @@ class ExtractorUseCase:
 
     def _process_extracts(self, extractions_func: Callable[..., Any], input_path:str, output_path:str):
         self._logger.info(f"Starting processing for input directory: {input_path}")
-        if not os.path.exists(output_path):
-            self._logger.info(f"Output directory {output_path} does not exist. Creating it.")
-            os.makedirs(output_path)
 
         all_files  = list(Path(input_path).glob("*.pdf"))
 

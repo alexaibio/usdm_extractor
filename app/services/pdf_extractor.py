@@ -11,58 +11,7 @@ from PIL import Image
 import fitz  # PyMuPDF
 from bs4 import BeautifulSoup
 from app.core.settings import Settings
-
-
-
-class GrobidClient:
-    def __init__(self, url: str):
-        self._base_url = url
-
-    def check_server(self) -> bool:
-        try:
-            response = requests.get(f"{self._base_url}/api/isalive", timeout=5)
-            response.raise_for_status()
-            print(f"GROBID server at {self._base_url} is alive.")
-            return True
-        except requests.exceptions.RequestException as e:
-            print(f"GROBID server at {self._base_url} is not reachable: {e}")
-            return False
-
-    def call_process_fulltext(self, pdf_path: str) -> str:
-        grobid_api_url = f"{self._base_url}/api/processFulltextDocument"
-        try:
-            coord_tags = {'figure', 'table', 'formula', 'list', 'item',
-                          'label'}  # {'list', 'item', 'figure', 'formula', 'table'}
-            params = {
-                'consolidateHeader': '1',
-                'consolidateCitations': '1',
-                'includeRawCitations': '0',
-                'includeRawAffiliations': '0',
-                'teiCoordinates': list(coord_tags)  # Запрашиваем координаты!
-            }
-            with open(pdf_path, 'rb') as f:
-                files = {'input': f}
-                response = requests.post(grobid_api_url, files=files, data=params, timeout=240)  # Увеличим таймаут
-
-            response.raise_for_status()
-            print(f"Successfully processed PDF with GROBID: {pdf_path}")
-            return response.text
-        except requests.exceptions.Timeout:
-            print(f"GROBID request timed out for {pdf_path}.")
-            return ""
-        except requests.exceptions.ConnectionError as e:
-            print(f"Could not connect to GROBID server at {self._base_url}. Is it running? Error: {e}")
-            return ""
-        except requests.exceptions.RequestException as e:
-            print(f"Error calling GROBID API for {pdf_path}: {e}")
-            if hasattr(e, 'response') and e.response is not None:
-                print(f"GROBID Response Status Code: {e.response.status_code}")
-                print(f"GROBID Response Text: {e.response.text[:500]}...")  # Показать начало ответа
-            return ""
-        except Exception as e:
-            print(f"An unexpected error occurred during GROBID processing for {pdf_path}: {e}")
-            return ""
-
+from app.infrastructure.grobid_client import GrobidClient
 
 
 class PDFConvertor:
@@ -192,73 +141,10 @@ class PDFConvertor:
         soup = BeautifulSoup(tei_xml, 'lxml-xml')
 
         self._replace_all_head(soup)
+        full_text = self._extract_content(soup)
+        full_text = self._clean_text(full_text)
+
+        return full_text
 
 
-        doc = None
-        try:
-            doc = fitz.open(pdf_path)
-            print(f"PDF opened successfully with PyMuPDF: {len(doc)} pages.")
 
-            for element_id, info in media_results.items():
-                page_num, bbox = info["page"], info["bbox"]
-                info["filepath"] = self._extract_element_image(doc, page_num, bbox, element_id, media_path)
-
-            for element_id, info in formula_results.items():
-                page_num, bbox = info["page"], info["bbox"]
-                info["filepath"] = self._extract_element_image(doc, page_num, bbox, element_id, media_path)
-
-            # for element_id, info in formula_results.items():
-            #     info["formula"] = self._formula_convertor.convert(info["filepath"])
-
-            full_text = self._extract_content(soup)
-
-            for element_id, info in formula_results.items():
-                #formula = info["formula"]
-                #full_text = full_text.replace(f'_FORMULA_[{element_id}]_', f'_LATEX_FORMULA_[{formula}]_ ', -1)
-                content_url = f"{media_url}/{source}/{filename}/{element_id}.png"
-                full_text = full_text.replace(f'_FORMULA_[{element_id}]_', f'_IMAGE_[{content_url}]_ ', -1)
-
-            for element_id, info in media_results.items():
-                content_url = f"{media_url}/{source}/{filename}/{element_id}.png"
-                full_text = full_text.replace(f'_IMAGE_[{element_id}]_', f'_IMAGE_[{content_url}]_ ', -1)
-
-            full_text = self._clean_text(full_text)
-
-            with open(os.path.join(media_path, f"{filename}.json"), "w", encoding="utf-8") as f_json:
-                json.dump(formula_results, f_json)
-
-            return full_text
-
-        except Exception as e:
-            print(f"Failed to open PDF {pdf_path} with PyMuPDF: {e}")
-            raise e
-        finally:
-            if doc is not None:
-                doc.close()
-
-
-    def _extract_element_image(self, doc: fitz.Document, page_num: int, bbox: Tuple[float, float, float, float], element_id: str, media_dir: str) -> str:
-        try:
-            is_formula = element_id.startswith("formula")
-
-            page = doc.load_page(page_num)
-            # Увеличиваем разрешение для лучшего OCR / отображения
-            zoom = 4 if is_formula else 2
-
-            mat = fitz.Matrix(zoom, zoom)
-            # Обрезаем страницу по bbox
-            # PyMuPDF rect: [x0, y0, x1, y1]
-            rect = fitz.Rect(bbox)
-            pix = page.get_pixmap(matrix=mat, clip=rect)
-            img_path = os.path.join(media_dir, f"{element_id}.png")
-            if element_id.startswith("formula"):
-                img = Image.open(io.BytesIO(pix.tobytes("png")))
-                img = preprocess_image(img)
-                img.save(img_path)
-            else:
-                pix.save(img_path)
-            print(f"Saved element image: {img_path}")
-            return img_path
-        except Exception as e:
-            print(f"Error extracting element image on page {page_num + 1} for bbox {bbox}: {e}")
-            return ""

@@ -7,8 +7,11 @@ to actions extracted from PDF file.
 
 # Features
 - find in PDF file a "Schedule of Activity" SoA section
-- use Grobid to parce PDF (best pdf parser up to now - https://hub.docker.com/r/grobid/grobid/tags)
-- extract every line of this section  as an activity
+- parce PDF, extract a SoA table with several heuristics (for now)
+  - use Grobid to parce PDF (best pdf parser up to now - https://hub.docker.com/r/grobid/grobid/tags)
+  - or with pdfplumber / camelot
+  - use LLM or CNN to detect table - TBD
+- extract every line of this section as an activity
 - use LLM to detect any BC
 - form a final JSON
 
@@ -20,7 +23,7 @@ From inside the project folder run:
    ```
    docker-compose up 
    ```
-If you want to debug and have grobid in a separate docker, run
+If you want to debug locally and run grobid in a separate docker, run
 ```
 docker run -it -p 8070:8070 grobid/grobid:0.8.1
 or

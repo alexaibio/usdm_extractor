@@ -22,10 +22,12 @@ class AppModule(Module):
         grobid_client = GrobidClient(settings.GROBID_URL)
         binder.bind(GrobidClient, to=grobid_client, scope=singleton)
 
-        # can remove it because injector gets it from Annotation
+        ### this binding is not mandatory - injector will get it automatically from Annotation
+        # that convertor uses Grobid in a separate docker instance
         pdf_convertor = PDFConvertor(client=grobid_client, settings=settings)
         binder.bind(PDFConvertor, to=pdf_convertor, scope=singleton)
 
+        # that converter uses pdfplumber and camelot
         pdf_convertor_v3 = PDFConvertorV3()
         binder.bind(PDFConvertorV3, to=pdf_convertor_v3, scope=singleton)
 
