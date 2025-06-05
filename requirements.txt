@@ -2,11 +2,18 @@ requests
 pydantic
 pydantic-settings
 python-dotenv
-
 tqdm
 pandas
-
+Pillow
 injector
 
-pymupdf
 BeautifulSoup4
+
+lxml==5.4.0
+tabula-py==2.10.0
+
+
+pdfplumber==0.11.6
+pymupdf==1.25.4
+camelot-py==1.0.0
+fitz
