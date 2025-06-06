@@ -4,10 +4,12 @@ from logging import Logger
 from pathlib import Path
 from typing import Callable, Any
 from injector import inject
+from traits.traits_listener import ListenerItem
+
 from app.core.settings import Settings
 from app.services.pdf_convertor import PDFConvertor
 from app.services.pdf_convertor_v3 import PDFConvertorV3
-#from app.utils.utils import find_all_files
+
 
 
 class ProcessingPdfUseCase:
@@ -23,10 +25,14 @@ class ProcessingPdfUseCase:
         Run PDF parsing, Hide extractions_func from outer user (function injection pattern)
         can use different extractors, pdf->text, pdf->tables etc
         """
-        self._process_extracts(self._pdf_convertor.extract_text_from_pdf, pdf_file, output_dir)
+        # extract text
+        self._process_extracts_and_save(self._pdf_convertor.extract_text_pages_from_pdf, pdf_file, output_dir)
+
+        # extract tables
+        self._process_extracts_and_save(self._pdf_convertor.extract_tables_from_pdf, pdf_file, output_dir)
 
 
-    def _process_extracts(self, extractions_func: Callable[..., Any], pdf_file_path: Path, output_dir: str):
+    def _process_extracts_and_save(self, extractions_func: Callable[..., Any], pdf_file_path: Path, output_dir: str):
         """
         Extract a piece of info (text, table etc) from pdf and save it
         """
@@ -38,15 +44,16 @@ class ProcessingPdfUseCase:
         try:
             extracted_item = extractions_func(pdf_file_path, output_dir)
 
-            if isinstance(extracted_item, str):
+            if isinstance(extracted_item, list):
                 with open(output_txt_file_path, 'w', encoding='utf-8') as file:
-                    file.write(extracted_item)
+                    file.write("\n\n                                     --- PAGE ---\n\n".join(extracted_item))
+                self._logger.info(f"   Writing TXT to {output_txt_file_path}")
             elif isinstance(extracted_item, pd.DataFrame):
-                extracted_item.to_csv(output_txt_file_path.replace(".txt", ".csv"), index=False)
+                csv_file_path = output_txt_file_path.replace(".txt", ".csv")
+                extracted_item.to_csv(csv_file_path, index=False)
+                self._logger.info(f"   Writing TABLE to {csv_file_path}")
             else:
                 raise ValueError("Unsupported extracted result type")
-
-            self._logger.info(f"Extracted item is written to {output_txt_file_path}")
 
         except FileNotFoundError as fnf_error:
             self._logger.error(f"File not found: {fnf_error}", exc_info=True)

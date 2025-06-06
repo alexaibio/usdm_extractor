@@ -18,3 +18,5 @@ pdfplumber==0.11.6
 pymupdf==1.25.4
 camelot-py==1.0.0
 fitz
+
+openai
