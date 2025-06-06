@@ -1,0 +1,40 @@
+{
+  "id": "Activity_1",
+  "extensionAttributes": [],
+  "name": "INFORMED_CONSENT",
+  "label": "Informed Consent",
+  "description": "Informed Consent",
+  "previousId": null,
+  "nextId": "Activity_2",
+  "childIds": [],
+  "definedProcedures": [
+    {
+      "id": "Procedure_1",
+      "extensionAttributes": [],
+      "name": "INFORMED_CONSENT",
+      "label": "Informed Consent",
+      "description": "Obtain informed consent from subject",
+      "procedureType": "",
+      "code": {
+        "id": "Code_87",
+        "extensionAttributes": [],
+        "code": "414925007",
+        "codeSystem": "SNOMED",
+        "codeSystemVersion": "January 31, 2018",
+        "decode": "Obtaining Consent",
+        "instanceType": "Code"
+      },
+      "studyInterventionId": null,
+      "notes": [],
+      "instanceType": "Procedure"
+    }
+  ],
+  "biomedicalConceptIds": [
+    "BiomedicalConcept_2"
+  ],
+  "bcCategoryIds": [],
+  "bcSurrogateIds": [],
+  "timelineId": null,
+  "notes": [],
+  "instanceType": "Activity"
+}

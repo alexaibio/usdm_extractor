@@ -1,0 +1,97 @@
+id: BiomedicalConcept_2
+extensionAttributes: []
+name: Informed Consent Obtained
+label: Informed Consent Obtained
+synonyms:
+  - Informed Consent Obtained
+  - Informed Consent
+reference: /mdr/specializations/sdtm/packages/2023-12-12/datasetspecializations/CONSENT
+properties:
+  - id: BiomedicalConceptProperty_5
+    extensionAttributes: []
+    name: DSDECOD
+    label: DSDECOD
+    isRequired: true
+    isEnabled: true
+    datatype: text
+    responseCodes: []
+    code:
+      id: AliasCode_11
+      extensionAttributes: []
+      standardCode:
+        id: Code_140
+        extensionAttributes: []
+        code: C82977
+        codeSystem: http://www.cdisc.org
+        codeSystemVersion: "2024-09-27"
+        decode: Dictionary-derived Term
+        instanceType: Code
+      standardCodeAliases: []
+      instanceType: AliasCode
+    notes: []
+    instanceType: BiomedicalConceptProperty
+
+  - id: BiomedicalConceptProperty_6
+    extensionAttributes: []
+    name: DSTERM
+    label: DSTERM
+    isRequired: true
+    isEnabled: true
+    datatype: text
+    responseCodes: []
+    code:
+      id: AliasCode_12
+      extensionAttributes: []
+      standardCode:
+        id: Code_141
+        extensionAttributes: []
+        code: C82571
+        codeSystem: http://www.cdisc.org
+        codeSystemVersion: "2024-09-27"
+        decode: Reported Event Term
+        instanceType: Code
+      standardCodeAliases: []
+      instanceType: AliasCode
+    notes: []
+    instanceType: BiomedicalConceptProperty
+
+  - id: BiomedicalConceptProperty_7
+    extensionAttributes: []
+    name: DSSTDTC
+    label: DSSTDTC
+    isRequired: true
+    isEnabled: true
+    datatype: datetime
+    responseCodes: []
+    code:
+      id: AliasCode_13
+      extensionAttributes: []
+      standardCode:
+        id: Code_142
+        extensionAttributes: []
+        code: C82517
+        codeSystem: http://www.cdisc.org
+        codeSystemVersion: "2024-09-27"
+        decode: Observation Start Date Time
+        instanceType: Code
+      standardCodeAliases: []
+      instanceType: AliasCode
+    notes: []
+    instanceType: BiomedicalConceptProperty
+
+code:
+  id: AliasCode_14
+  extensionAttributes: []
+  standardCode:
+    id: Code_143
+    extensionAttributes: []
+    code: C16735
+    codeSystem: http://www.cdisc.org
+    codeSystemVersion: "2024-09-27"
+    decode: Informed Consent
+    instanceType: Code
+  standardCodeAliases: []
+  instanceType: AliasCode
+
+notes: []
+instanceType: BiomedicalConcept

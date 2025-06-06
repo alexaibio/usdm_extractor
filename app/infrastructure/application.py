@@ -9,10 +9,10 @@ from app.use_cases.processing_pdf_use_case import ProcessingPdfUseCase
 class Application:
     @inject
     def __init__(self,
-                 extractor_use_case: ProcessingPdfUseCase,
+                 processing_pdf_use_case: ProcessingPdfUseCase,
                  settings: Settings,
                  logger: logging.Logger):
-        self._extractor_use_case = extractor_use_case
+        self._processing_pdf_use_case = processing_pdf_use_case
         self._input_dir = settings.INPUT_DIR
         self._output_dir = settings.OUTPUT_DIR
         self._logger = logger
@@ -29,10 +29,11 @@ class Application:
         self._logger.info(f"Scanning {self._input_dir} folder... {len(pdf_files)} files found.")
 
         for pdf_file in pdf_files:
-            self._extractor_use_case.run_extraction(
+            self._processing_pdf_use_case.run_extraction_pipeline(
                 pdf_file=pdf_file,
                 output_dir=self._output_dir
             )
+
 
 
 

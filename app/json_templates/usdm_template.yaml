@@ -24,4 +24,31 @@ study:
           characteristics: []
           encounters: []
           activities: []
+          arms: [ ]
+          studyCells: [ ]
+          epochs: [ ]      # Timeline stages
+          elements: [ ]
+          objectives: [ ]  # Primary, secondary, exploratory objectives
+          indications: [ ]
+          population: {}
+          rationale: Justification for this study design
+          notes: [ ]
+          instanceType: InterventionalStudyDesign
+      titles: [ ]
+      eligibilityCriterionItems: [ ]
+      narrativeContentItems: [ ]
+      abbreviations: [ ]
+      roles: [ ]
+      organizations: [ ]
+      studyInterventions: [ ]
+      administrableProducts: [ ]
+      medicalDevices: [ ]
+      productOrganizationRoles: [ ]
+      biomedicalConcepts: [ ]       # Biomedical Concepts
+      bcCategories: [ ]
+      bcSurrogates: [ ]
+      dictionaries: [ ]
+      conditions: [ ]
+      notes: [ ]
+      instanceType: StudyVersion
 
