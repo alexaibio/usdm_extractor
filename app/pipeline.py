@@ -29,6 +29,8 @@ activity = {
 }
 
 def pipeline():
+
+    ## TEST
     base_path = Path(__file__).parent
     with open(base_path / "usdm_template.yaml", "r", encoding="utf-8") as f:
         usdm_data = yaml.safe_load(f)
@@ -42,6 +44,14 @@ def pipeline():
     # Export to JSON
     with open(base_path / "usdm_filled.json", "w") as file:
         json.dump(usdm_data, file, indent=2)
+
+    ##### Pipeline outline:
+    # pdf exractor shall be already run and generate a CSV file for SoA items
+
+    # the idea is to submit that table to LLM and ask to fill in the activity item
+    # by a few short learning (an example inside the prompt)
+
+    # Finally need an API call to post in into OSB
 
 
 
