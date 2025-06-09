@@ -123,7 +123,7 @@ class PDFConvertor:
         return cleared_text.strip()
 
 
-    def extract_text_from_pdf(self, pdf_path: str, output_dir: str):
+    def extract_pages_text_from_pdf(self, pdf_path: str, output_dir: str):
         filename = Path(pdf_path).stem
 
         print("Processing PDF with GROBID...")
