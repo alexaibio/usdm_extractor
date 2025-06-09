@@ -21,4 +21,5 @@ fitz
 
 openai
 transformers
-pytorch
+torch
+ollama-python

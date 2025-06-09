@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     GROBID_URL: str = 'http://localhost:8070'
     INPUT_DIR: str = './data/input_dir'
     OUTPUT_DIR: str = './data/output_dir'
+    HG_API_KEY: str
 
     class Config:
         env_file = '.env'

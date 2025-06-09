@@ -32,7 +32,7 @@ def pipeline():
 
     ## TEST
     base_path = Path(__file__).parent
-    with open(base_path / "usdm_template.yaml", "r", encoding="utf-8") as f:
+    with open(base_path / "json_templates" / "usdm_template.yaml", "r", encoding="utf-8") as f:
         usdm_data = yaml.safe_load(f)
 
     study_version = usdm_data["study"]["versions"][0]
@@ -42,7 +42,7 @@ def pipeline():
     study_design["activities"].append(activity)
 
     # Export to JSON
-    with open(base_path / "usdm_filled.json", "w") as file:
+    with open(base_path /"json_templates" / "usdm_filled.json", "w") as file:
         json.dump(usdm_data, file, indent=2)
 
     ##### Pipeline outline:

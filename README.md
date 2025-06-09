@@ -20,6 +20,8 @@ to actions extracted from PDF file.
 - Docker
 
 # Getting Started
+
+### With Grobid pdf parser
 From inside the project folder run:
    ```
    docker-compose up 
@@ -30,6 +32,18 @@ docker run -it -p 8070:8070 grobid/grobid:0.8.1
 or
 docker run -it -p 8070:8070 grobid/grobid:0.6.2
 ```
+
+### With pdf plumber and camelot
+- For pdf extraction run pdf_extractor_app.py
+- Then for futher processing run pipeline.py
+
+Or do it with docker
+```
+docker build -t pdf_extractor .
+docker run -d --name pdf_extractor_service -v $(pwd)/data:/home/data pdf_extractor
+```
+
+### Note
 If you like to call OSB API, the OSB docker-copmose miust be run as well.
 
 ## Usage

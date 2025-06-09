@@ -1,15 +1,14 @@
 import io
 import json
 import string
-from pathlib import Path
-from injector import inject
 import os
 import re
 from typing import Optional, Tuple
-import requests
-from PIL import Image
-import fitz  # PyMuPDF
+
 from bs4 import BeautifulSoup
+from pathlib import Path
+from injector import inject
+
 from app.core.settings import Settings
 from app.infrastructure.grobid_client import GrobidClient
 
