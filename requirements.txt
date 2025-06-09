@@ -20,3 +20,5 @@ camelot-py==1.0.0
 fitz
 
 openai
+transformers
+pytorch

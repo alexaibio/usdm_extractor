@@ -4,7 +4,6 @@ from logging import Logger
 from pathlib import Path
 from typing import Callable, Any
 from injector import inject
-from traits.traits_listener import ListenerItem
 
 from app.core.settings import Settings
 from app.services.pdf_convertor import PDFConvertor

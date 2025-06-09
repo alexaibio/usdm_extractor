@@ -1,7 +1,7 @@
 import logging
-import os
 from pathlib import Path
 from injector import inject
+
 from app.core.settings import Settings
 from app.use_cases.processing_pdf_use_case import ProcessingPdfUseCase
 
