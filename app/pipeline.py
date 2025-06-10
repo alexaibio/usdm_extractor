@@ -57,7 +57,7 @@ def test_pipeline():
 
 
 async def pipeline():
-    # TODO: refactor it to be Application with dependency injection
+    # TODO: refactor it to be Application with dependency injection and be a separate class
 
     # load extracted Activity CSV table and temple
     output_dir = setings.OUTPUT_DIR
@@ -65,35 +65,42 @@ async def pipeline():
 
     template_path = base_path / "json_templates" / "activity_example.json"
     with open(template_path, "r", encoding="utf-8") as f:
-        activity_template = f.read()
+        activity_example = f.read()
 
     # get LLM client
     llm_client = llm_client_factory.of(LLMProvider.hg_local)
-    #model = "meta-llama/Meta-Llama-3-8B-Instruct"       # GPT-2, maximum context length of 1024 tokens
-    model = "mistralai/Mistral-7B-Instruct-v0.2"
-    prompt_template = f"""
-    You are a clinical data structuring assistant.
+    model = "meta-llama/Meta-Llama-3-8B-Instruct"       # GPT-2, maximum context length of 1024 tokens
+    #model = "mistralai/Mistral-7B-Instruct-v0.2"
 
-    The following is a CSV table extracted from a clinical trial protocol. Your task is to analyze the table and extract each activity (such as informed consent, screening, dosing, assessments, etc.) along with its relevant details.
 
-    Use the following JSON structure template for each activity (fill in "NA" for unknown values):
 
-    {activity_template}
-
-    Return only a JSON array of such activity objects.
-
-    Here is the table:
-    """
 
     for csv_file in csv_files:
         csv_text = csv_file.read_text(encoding="utf-8")
-        prompt = prompt_template + csv_text
+
+        user_prompt = f"""
+        Given the following CSV table extracted from a clinical trial protocol, convert each row into a JSON activity section exactly as per the example. Fill unknown values with "NA". Return only the JSON objects for each activity, with no extra explanation or text.
+        Here is the CSV table:
+        {csv_text}
+
+        Example JSON for first activity:
+        {activity_example}
+        """
+
+
+        prompt = [
+            {"role": "system",
+             "content": "You are a clinical data structuring assistant and you help to convert clinical trial protocols to USDM json.", },
+            {"role": "user", "content": user_prompt}
+        ]
+
 
         result_json = await llm_client.generate(
             operation="activity_CSV_to_JSON",
             model=model,
             prompt=prompt
         )
+
         print(result_json)
 
         # safe json to output dir
