@@ -24,11 +24,12 @@ class ProcessingPdfUseCase:
         Run PDF parsing, Hide extractions_func from outer user (function injection pattern)
         can use different extractors, pdf->text, pdf->tables etc
         """
-        # extract text
+        # extract text pages - [_pdf_convertor.extract_text_pages_from_pdf]
         self._process_extracts_and_save(self._pdf_convertor.extract_text_pages_from_pdf, pdf_file, output_dir)
 
-        # extract tables
-        self._process_extracts_and_save(self._pdf_convertor.extract_tables_from_pdf, pdf_file, output_dir)
+        # extract activity and objective tables
+        self._process_extracts_and_save(self._pdf_convertor.extract_activity_tables_from_pdf, pdf_file, output_dir)
+        self._process_extracts_and_save(self._pdf_convertor.extract_objectives_tables_from_pdf, pdf_file, output_dir)
 
 
     def _process_extracts_and_save(self, extractions_func: Callable[..., Any], pdf_file_path: Path, output_dir: str):
@@ -37,11 +38,20 @@ class ProcessingPdfUseCase:
         """
         self._logger.info(f"   Processing file: {pdf_file_path}")
 
-        output_filename = Path(pdf_file_path).stem + ".txt"
+        if extractions_func.__name__ == "extract_activity_tables_from_pdf":
+            file_suffix = "_activities"
+        elif extractions_func.__name__ == "extract_objectives_tables_from_pdf":
+            file_suffix = "_objectives"
+        elif extractions_func.__name__ == "extract_text_pages_from_pdf":
+            file_suffix = ""
+        else:
+            raise ValueError(" WRONG extraction function name")
+
+        output_filename = Path(pdf_file_path).stem + file_suffix +".txt"
         output_txt_file_path = os.path.join(output_dir, output_filename)
 
         try:
-            extracted_item = extractions_func(pdf_file_path, output_dir)
+            extracted_item = extractions_func(pdf_file_path)
 
             if isinstance(extracted_item, list):
                 with open(output_txt_file_path, 'w', encoding='utf-8') as file:
