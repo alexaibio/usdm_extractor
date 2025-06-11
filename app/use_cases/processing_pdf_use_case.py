@@ -38,37 +38,62 @@ class ProcessingPdfUseCase:
         """
         self._logger.info(f"   Processing file: {pdf_file_path}")
 
-        if extractions_func.__name__ == "extract_activity_tables_from_pdf":
-            file_suffix = "_activities"
-        elif extractions_func.__name__ == "extract_objectives_tables_from_pdf":
-            file_suffix = "_objectives"
-        elif extractions_func.__name__ == "extract_text_pages_from_pdf":
-            file_suffix = ""
-        else:
-            raise ValueError(" WRONG extraction function name")
+        suffix_map = {
+            "extract_activity_tables_from_pdf": "_activities",
+            "extract_objectives_tables_from_pdf": "_objectives",
+            "extract_text_pages_from_pdf": "",
+        }
 
-        output_filename = Path(pdf_file_path).stem + file_suffix +".txt"
-        output_txt_file_path = os.path.join(output_dir, output_filename)
+        file_suffix = suffix_map.get(extractions_func.__name__)
+
+        output_stem = pdf_file_path.stem + file_suffix
+        output_txt_path = Path(output_dir) / f"{output_stem}.txt"
 
         try:
-            extracted_item = extractions_func(pdf_file_path)
+            result = extractions_func(pdf_file_path)
 
-            if isinstance(extracted_item, list):
-                with open(output_txt_file_path, 'w', encoding='utf-8') as file:
-                    file.write("\n\n                                     --- PAGE ---\n\n".join(extracted_item))
-                self._logger.info(f"   Writing TXT to {output_txt_file_path}")
-            elif isinstance(extracted_item, pd.DataFrame):
-                csv_file_path = output_txt_file_path.replace(".txt", ".csv")
-                extracted_item.to_csv(csv_file_path, index=False)
-                self._logger.info(f"   Writing TABLE to {csv_file_path}")
+            if isinstance(result, list):
+                content = "\n\n                                     --- PAGE ---\n\n".join(result)
+                output_txt_path.write_text(content, encoding='utf-8')
+                self._logger.info(f"   Writing TXT to {output_txt_path}")
+
+            elif isinstance(result, pd.DataFrame):
+                output_csv_path = output_txt_path.with_suffix('.csv')
+                result.to_csv(output_csv_path, index=False)
+                self._logger.info(f"   Writing TABLE to {output_csv_path}")
+
             else:
-                raise ValueError("Unsupported extracted result type")
+                raise TypeError(f"Unsupported extracted result type: {type(result)}")
 
-        except FileNotFoundError as fnf_error:
-            self._logger.error(f"File not found: {fnf_error}", exc_info=True)
-        except IOError as io_error:
-            self._logger.error(f"IO error: {io_error}", exc_info=True)
+        except FileNotFoundError as e:
+            self._logger.error(f"File not found: {e}", exc_info=True)
+        except IOError as e:
+            self._logger.error(f"I/O error: {e}", exc_info=True)
         except Exception as e:
-            self._logger.error(f"An error occurred processing {pdf_file_path}: {e}", exc_info=True)
+            self._logger.error(f"An unexpected error occurred: {e}", exc_info=True)
 
-
+        # output_filename = Path(pdf_file_path).stem + file_suffix +".txt"
+        # output_txt_file_path = os.path.join(output_dir, output_filename)
+        #
+        # try:
+        #     extracted_item = extractions_func(pdf_file_path)
+        #
+        #     if isinstance(extracted_item, list):
+        #         with open(output_txt_file_path, 'w', encoding='utf-8') as file:
+        #             file.write("\n\n                                     --- PAGE ---\n\n".join(extracted_item))
+        #         self._logger.info(f"   Writing TXT to {output_txt_file_path}")
+        #     elif isinstance(extracted_item, pd.DataFrame):
+        #         csv_file_path = output_txt_file_path.replace(".txt", ".csv")
+        #         extracted_item.to_csv(csv_file_path, index=False)
+        #         self._logger.info(f"   Writing TABLE to {csv_file_path}")
+        #     else:
+        #         raise ValueError("Unsupported extracted result type")
+        #
+        # except FileNotFoundError as fnf_error:
+        #     self._logger.error(f"File not found: {fnf_error}", exc_info=True)
+        # except IOError as io_error:
+        #     self._logger.error(f"IO error: {io_error}", exc_info=True)
+        # except Exception as e:
+        #     self._logger.error(f"An error occurred processing {pdf_file_path}: {e}", exc_info=True)
+        #
+        #

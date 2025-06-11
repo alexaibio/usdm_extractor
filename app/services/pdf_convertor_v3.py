@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import Optional, Tuple, List, Dict, Any
+from typing import Optional, Tuple, List, Dict, Callable
 from difflib import SequenceMatcher
 
 import camelot
@@ -241,25 +241,6 @@ class PDFConvertorV3:
         return schedule_tables
 
 
-    # def _only_continuous_and_objective_tables(self, tables: Dict[int, pd.DataFrame]) -> List[pd.DataFrame]:
-    #     last_page = 0
-    #     objective_tables = []
-    #     found = False
-    #     for page_num in sorted(tables.keys()):
-    #         # If we previously found a schedule table and this page is the next consecutive page
-    #         if found and page_num - 1 == last_page:
-    #             objective_tables.append(tables[page_num])
-    #             last_page = page_num
-    #         else:
-    #             found = False
-    #
-    #         if self._is_objectives_table_heuristic(tables[page_num]):
-    #             if not found:
-    #                 objective_tables.append(tables[page_num])
-    #             last_page, found = page_num, True
-    #
-    #     return objective_tables
-
     def _only_continuous_and_objective_tables(self, tables: Dict[int, pd.DataFrame]) -> List[pd.DataFrame]:
         last_page = -1
         objective_tables = []
@@ -315,6 +296,7 @@ class PDFConvertorV3:
 
         return unique_tables
 
+
     def extract_text_pages_from_pdf(self, pdf_path: str) -> List[str]:
         pages_text = self._extract_text_with_pdfplumber(pdf_path)
         if not pages_text:
@@ -325,100 +307,154 @@ class PDFConvertorV3:
 
 
 
+    # def extract_activity_tables_from_pdf(self, pdf_path: str) -> Optional[pd.DataFrame]:
+    #     logging.info("Looking for Action tables:")
+    #
+    #     min_table_col_allowed = 3
+    #
+    #     ### 0: find pages with Activities mentioning
+    #     pages_text = self._extract_text_with_pdfplumber(pdf_path)
+    #
+    #     pages_with_pattern: List[Tuple[int, str]] = self._find_pages_by_pattern(pages_text, self.activities_patterns)
+    #     pattern_pages = [n for n, s in pages_with_pattern]
+    #
+    #     ### 1: extract all RAW tables with pattern (action)  mentioning
+    #     all_tables = {}
+    #     for page_num in pattern_pages:
+    #         print(f"   XXX mentioning was found  on  {page_num} page...", end='')
+    #         if page_num in all_tables.keys():
+    #             continue
+    #
+    #         camelot_tables = self._extract_tables_with_camelot(pdf_path, page_num, min_table_col_allowed)
+    #         # try next page too
+    #         if not camelot_tables:
+    #             camelot_tables = self._extract_tables_with_camelot(pdf_path, page_num + 1, min_table_col_allowed)
+    #
+    #         print(f'.. {len(camelot_tables)} tables were found on page {page_num} (with more then 3 columns).')
+    #         all_tables.update(camelot_tables)
+    #
+    #     print(f"   Found {len(all_tables)} pattern (Action, Objectives) tables")
+    #
+    #     ## 2: Sanity check: are table continuous and about activity scheduling?
+    #     schedule_tables = self._only_continuous_and_activity_schedule_tables(all_tables)
+    #     if not schedule_tables:
+    #         print("   Table are either not contonous of not about scheduling")
+    #         return None
+    #     print("Schedule table identified")
+    #
+    #     # TODO: sometime tables are joined by extending to the right , not top-down - need tp handle this case
+    #
+    #     ## 3: Identify headers
+    #     headers = self._find_header_rows_numbers(schedule_tables)
+    #     headers_row_count: int = headers[0] if headers else 0
+    #     print(f'  first {headers_row_count} rows are identified as table header')
+    #
+    #     merged_schedule_table = self._merge_tables_skip_headers(schedule_tables, headers_row_count)
+    #     merged_df = self._merge_rows_and_rename_columns(merged_schedule_table, headers_row_count)
+    #
+    #     return merged_df
+    #
+    #
+    #
+    # def extract_objectives_tables_from_pdf(self, pdf_path: str) -> Optional[pd.DataFrame]:
+    #
+    #     min_table_col_allowed = 1
+    #
+    #     ### 0: find pages with Pattern mentioning
+    #     pages_text = self._extract_text_with_pdfplumber(pdf_path)
+    #
+    #     pages_with_pattern_tuples: List[Tuple[int, str]] = self._find_pages_by_pattern(pages_text, self.objectives_patterns)
+    #     pattern_pages = [n for n, s in pages_with_pattern_tuples]
+    #
+    #     ### 1: extract all RAW tables with pattern (action)  mentioning
+    #     all_tables = {}
+    #     for page_num in pattern_pages:
+    #         print(f"   XXX mentioning was found  on  {page_num} page...", end='')
+    #         if page_num in all_tables.keys():
+    #             continue
+    #
+    #         camelot_tables = self._extract_tables_with_camelot(pdf_path, page_num, min_table_col_allowed)
+    #         # check the following gaoe with recursion
+    #         if not camelot_tables:
+    #             camelot_tables = self._extract_tables_with_camelot(pdf_path, page_num + 1, min_table_col_allowed)  # recursion
+    #
+    #         print(f'.. {len(camelot_tables)} tables were found on page {page_num} (with more then 3 columns).')
+    #         all_tables.update(camelot_tables)
+    #
+    #     print(f"     Total  {len(all_tables)} table were found  (with Action or Objectives)")
+    #
+    #     ## 2: Sanity check: are tables continuous and about scheduling?
+    #     objective_tables = self._only_continuous_and_objective_tables(all_tables)
+    #     if not objective_tables:
+    #         print("   Tables are either not continuos of not about objectives")
+    #         return None
+    #     print("Objective and endpoint table identified")
+    #
+    #     # TODO: sometime tables are joined by extending to the right , not top-down - need tp handle this case
+    #
+    #     objective_tables_dedup = self._deduplicate_tables(objective_tables)
+    #
+    #     ## 3: Identify headers
+    #     headers_row_count = 1   # we know that objective is a small table with simple headers
+    #
+    #     print(f'  first {headers_row_count} rows are identified as table header')
+    #
+    #     merged_schedule_table = self._merge_tables_skip_headers(objective_tables_dedup, headers_row_count)
+    #     merged_df = self._merge_rows_and_rename_columns(merged_schedule_table, headers_row_count)
+    #
+    #     return merged_df
+
+
+
+    def _extract_and_process_tables(
+        self,
+        pdf_path: str,
+        patterns: List[re.Pattern],
+        is_valid_table_fn: Callable[[pd.DataFrame], bool],
+        is_continuous_fn: Callable[[Dict[int, pd.DataFrame]], List[pd.DataFrame]],
+        min_table_col_allowed: int,
+        headers_row_count: Optional[int] = None
+    ) -> Optional[pd.DataFrame]:
+        pages_text = self._extract_text_with_pdfplumber(pdf_path)
+        pages_with_pattern = self._find_pages_by_pattern(pages_text, patterns)
+        pattern_pages = [n for n, _ in pages_with_pattern]
+
+        all_tables = {}
+        for page_num in pattern_pages:
+            if page_num in all_tables:
+                continue
+            tables = self._extract_tables_with_camelot(pdf_path, page_num, min_table_col_allowed)
+            if not tables:
+                tables = self._extract_tables_with_camelot(pdf_path, page_num + 1, min_table_col_allowed)
+            all_tables.update(tables)
+
+        filtered_tables = is_continuous_fn(all_tables)
+        if not filtered_tables:
+            return None
+
+        if headers_row_count is None:
+            headers = self._find_header_rows_numbers(filtered_tables)
+            headers_row_count = headers[0] if headers else 0
+
+        deduped = self._deduplicate_tables(filtered_tables)
+        merged = self._merge_tables_skip_headers(deduped, headers_row_count)
+        return self._merge_rows_and_rename_columns(merged, headers_row_count)
+
     def extract_activity_tables_from_pdf(self, pdf_path: str) -> Optional[pd.DataFrame]:
-        logging.info("Looking for Action tables:")
+        return self._extract_and_process_tables(
+            pdf_path,
+            self.activities_patterns,
+            self._is_schedule_table_heuristic,
+            self._only_continuous_and_activity_schedule_tables,
+            min_table_col_allowed=3,
+        )
 
-        min_table_col_allowed = 3
-
-        ### 0: find pages with Activities mentioning
-        pages_text = self._extract_text_with_pdfplumber(pdf_path)
-
-        pages_with_pattern: List[Tuple[int, str]] = self._find_pages_by_pattern(pages_text, self.activities_patterns)
-        pattern_pages = [n for n, s in pages_with_pattern]
-
-        ### 1: extract all RAW tables with pattern (action)  mentioning
-        all_tables = {}
-        for page_num in pattern_pages:
-            print(f"   XXX mentioning was found  on  {page_num} page...", end='')
-            if page_num in all_tables.keys():
-                continue
-
-            camelot_tables = self._extract_tables_with_camelot(pdf_path, page_num, min_table_col_allowed)
-            # try next page too
-            if not camelot_tables:
-                camelot_tables = self._extract_tables_with_camelot(pdf_path, page_num + 1, min_table_col_allowed)
-
-            print(f'.. {len(camelot_tables)} tables were found on page {page_num} (with more then 3 columns).')
-            all_tables.update(camelot_tables)
-
-        print(f"   Found {len(all_tables)} pattern (Action, Objectives) tables")
-
-        ## 2: Sanity check: are table continuous and about activity scheduling?
-        schedule_tables = self._only_continuous_and_activity_schedule_tables(all_tables)
-        if not schedule_tables:
-            print("   Table are either not contonous of not about scheduling")
-            return None
-        print("Schedule table identified")
-
-        # TODO: sometime tables are joined by extending to the right , not top-down - need tp handle this case
-
-        ## 3: Identify headers
-        headers = self._find_header_rows_numbers(schedule_tables)
-        headers_row_count: int = headers[0] if headers else 0
-        print(f'  first {headers_row_count} rows are identified as table header')
-
-        merged_schedule_table = self._merge_tables_skip_headers(schedule_tables, headers_row_count)
-        merged_df = self._merge_rows_and_rename_columns(merged_schedule_table, headers_row_count)
-
-        return merged_df
-
-
-    # TODO: it seems like they are identical, refactor that
     def extract_objectives_tables_from_pdf(self, pdf_path: str) -> Optional[pd.DataFrame]:
-
-        min_table_col_allowed = 1
-
-        ### 0: find pages with Pattern mentioning
-        pages_text = self._extract_text_with_pdfplumber(pdf_path)
-
-        pages_with_pattern_tuples: List[Tuple[int, str]] = self._find_pages_by_pattern(pages_text, self.objectives_patterns)
-        pattern_pages = [n for n, s in pages_with_pattern_tuples]
-
-        ### 1: extract all RAW tables with pattern (action)  mentioning
-        all_tables = {}
-        for page_num in pattern_pages:
-            print(f"   XXX mentioning was found  on  {page_num} page...", end='')
-            if page_num in all_tables.keys():
-                continue
-
-            camelot_tables = self._extract_tables_with_camelot(pdf_path, page_num, min_table_col_allowed)
-            # check the following gaoe with recursion
-            if not camelot_tables:
-                camelot_tables = self._extract_tables_with_camelot(pdf_path, page_num + 1, min_table_col_allowed)  # recursion
-
-            print(f'.. {len(camelot_tables)} tables were found on page {page_num} (with more then 3 columns).')
-            all_tables.update(camelot_tables)
-
-        print(f"     Total  {len(all_tables)} table were found  (with Action or Objectives)")
-
-        ## 2: Sanity check: are tables continuous and about scheduling?
-        objective_tables = self._only_continuous_and_objective_tables(all_tables)
-        if not objective_tables:
-            print("   Tables are either not continuos of not about objectives")
-            return None
-        print("Objective and endpoint table identified")
-
-        # TODO: sometime tables are joined by extending to the right , not top-down - need tp handle this case
-
-        objective_tables_dedup = self._deduplicate_tables(objective_tables)
-
-        ## 3: Identify headers
-        headers_row_count = 1   # we know that objective is a small table with simple headers
-
-        print(f'  first {headers_row_count} rows are identified as table header')
-
-        merged_schedule_table = self._merge_tables_skip_headers(objective_tables_dedup, headers_row_count)
-        merged_df = self._merge_rows_and_rename_columns(merged_schedule_table, headers_row_count)
-
-        return merged_df
-
+        return self._extract_and_process_tables(
+            pdf_path,
+            self.objectives_patterns,
+            self._is_objectives_table_heuristic,
+            self._only_continuous_and_objective_tables,
+            min_table_col_allowed=1,
+            headers_row_count=1
+        )
