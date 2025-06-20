@@ -415,6 +415,7 @@ class PDFConvertorV3:
         min_table_col_allowed: int,
         headers_row_count: Optional[int] = None
     ) -> Optional[pd.DataFrame]:
+
         pages_text = self._extract_text_with_pdfplumber(pdf_path)
         pages_with_pattern = self._find_pages_by_pattern(pages_text, patterns)
         pattern_pages = [n for n, _ in pages_with_pattern]
@@ -442,19 +443,19 @@ class PDFConvertorV3:
 
     def extract_activity_tables_from_pdf(self, pdf_path: str) -> Optional[pd.DataFrame]:
         return self._extract_and_process_tables(
-            pdf_path,
-            self.activities_patterns,
-            self._is_schedule_table_heuristic,
-            self._only_continuous_and_activity_schedule_tables,
+            pdf_path=pdf_path,
+            patterns=self.activities_patterns,
+            is_valid_table_fn=self._is_schedule_table_heuristic,
+            is_continuous_fn=self._only_continuous_and_activity_schedule_tables,
             min_table_col_allowed=3,
         )
 
     def extract_objectives_tables_from_pdf(self, pdf_path: str) -> Optional[pd.DataFrame]:
         return self._extract_and_process_tables(
-            pdf_path,
-            self.objectives_patterns,
-            self._is_objectives_table_heuristic,
-            self._only_continuous_and_objective_tables,
+            pdf_path=pdf_path,
+            patterns=self.objectives_patterns,
+            is_valid_table_fn=self._is_objectives_table_heuristic,
+            is_continuous_fn=self._only_continuous_and_objective_tables,
             min_table_col_allowed=1,
             headers_row_count=1
         )
